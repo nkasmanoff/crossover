@@ -89,12 +89,14 @@ connections are data.
 
 ## Snapshot freshness
 
-`npm run ingest` is also wired to a **GitHub Action**
-([`.github/workflows/ingest.yml`](.github/workflows/ingest.yml)) that re-ingests
-weekly (Mondays) plus a manual `workflow_dispatch` trigger (run it after trade
-deadlines). It commits the refreshed `data/snapshot.json`. The sink writes to a
-temp file and atomically promotes only a **validated** snapshot, so the game
-never loads a half-written one. Add `BALLDONTLIE_API_KEY` as a repo secret.
+A **GitHub Action** ([`.github/workflows/ingest.yml`](.github/workflows/ingest.yml))
+provides a manual `workflow_dispatch` refresh with `source` + `full` inputs; it
+commits the refreshed `data/snapshot.json` + `data/notable.json`. Because the
+default `nba-stats` source stalls on datacenter IPs, CI can only run the shallow
+`balldontlie` source (set `BALLDONTLIE_API_KEY` as a repo secret) — refresh the
+**full**-history snapshot locally on a residential connection, or point the job
+at a self-hosted runner. The sink writes to a temp file and atomically promotes
+only a **validated** snapshot, so the game never loads a half-written one.
 
 The storage backend is swappable behind `SnapshotSink`
 ([`src/lib/sink.ts`](src/lib/sink.ts)) — drop in an object-store/KV
@@ -127,7 +129,8 @@ checks O(1)-ish — see [`src/lib/graph.ts`](src/lib/graph.ts).
 ## Modes
 
 - **Daily Bridge** (headline): everyone gets the same start + target for the
-  day; connect them. Par = true BFS shortest path, computed at generation time
-  and verified solvable. Deterministic by date. Share a name-free emoji grid.
+  day; connect them. Par = the **alternation-constrained** shortest path
+  (college→team→…, the fewest links actually playable), computed at generation
+  time and verified solvable. Deterministic by date. Share a name-free emoji grid.
 - **Endless**: chain as long as you can; score = chain length.
 # crossover

@@ -17,13 +17,14 @@
  */
 
 import type { Graph } from "@/src/lib/graph.js";
+import { famousPlayerIds } from "@/lib/famous-players.js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Optional notable-players sidecar written by the ingester (drafted players,
- * earlier picks first). Used to bias daily seeds toward recognizable names.
- * Absent → we fall back to any major-franchise player.
+ * Daily seeds prefer a curated famous-player list, then the optional
+ * notable-players sidecar (drafted players, earlier picks first). Absent →
+ * we fall back to any major-franchise player.
  */
 let notableCache: Set<string> | null | undefined;
 function loadNotable(): Set<string> | null {
@@ -93,14 +94,16 @@ export function seedPool(graph: Graph): string[] {
     graph.snapshot.teams.filter((t) => t.playerIds.length >= 0.25 * maxRoster).map((t) => t.id),
   );
   const notable = loadNotable();
+  const famous = famousPlayerIds(graph);
 
-  const consider = (requireNotable: boolean): string[] => {
+  const consider = (filter: "famous" | "notable" | "any"): string[] => {
     const pool: string[] = [];
     for (const p of graph.players) {
       if (!p.college) continue;
       if (p.teams.length === 0) continue;
       if (!p.teams.some((t) => majorTeams.has(t))) continue;
-      if (requireNotable && notable && !notable.has(p.id)) continue;
+      if (filter === "famous" && !famous.has(p.id)) continue;
+      if (filter === "notable" && notable && !notable.has(p.id)) continue;
       // Some connectivity so puzzles aren't dead-ends.
       const degree = graph.collegeNeighbors(p.id).length + graph.teamNeighbors(p.id).length;
       if (degree >= 8) pool.push(p.id);
@@ -108,10 +111,11 @@ export function seedPool(graph: Graph): string[] {
     return pool.sort();
   };
 
-  // Prefer notable (drafted) players; fall back to all major-franchise players
-  // if the sidecar is missing or too small to make varied puzzles.
-  const preferred = consider(true);
-  return preferred.length >= 50 ? preferred : consider(false);
+  // Prefer household-name stars; then drafted/recent notable; then any major-franchise player.
+  const star = consider("famous");
+  if (star.length >= 25) return star;
+  const preferred = consider("notable");
+  return preferred.length >= 50 ? preferred : consider("any");
 }
 
 export function getDaily(graph: Graph, date: string = todayKey()): DailyPuzzle {
