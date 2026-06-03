@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --glow: 240 164 55; /* hardwood amber */
+}
+
+html,
+body {
+  background-color: #0a0a0c;
+  color: #ece8e1;
+  min-height: 100%;
+}
+
+/* Warm radial "stadium light" glow + faint grain over a near-black court. */
+body {
+  background-image:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      rgba(var(--glow), 0.18) 0%,
+      rgba(var(--glow), 0.06) 28%,
+      rgba(10, 10, 12, 0) 60%
+    ),
+    radial-gradient(80% 60% at 50% 110%, rgba(90, 169, 230, 0.08) 0%, rgba(10, 10, 12, 0) 55%);
+  background-attachment: fixed;
+}
+
+/* Faint film grain. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-bebas), Impact, sans-serif;
+    letter-spacing: 0.02em;
+  }
+  .text-glow {
+    text-shadow: 0 0 18px rgba(var(--glow), 0.45);
+  }
+}
+
+/* Respect reduced-motion: disable all animations + transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Thin scrollbar that fits the dark theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2730 transparent;
+}

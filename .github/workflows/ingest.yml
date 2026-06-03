@@ -1,0 +1,68 @@
+name: Refresh Crossover snapshot
+
+# Keeps the graph snapshot fresh so it never goes stale. College is immutable;
+# this mainly refreshes current-team / roster changes.
+#
+# IMPORTANT: the default `nba-stats` source (stats.nba.com) stalls/blocks
+# non-residential IPs, so it generally will NOT work on GitHub-hosted runners.
+# Options:
+#   • Refresh the full-history snapshot LOCALLY (residential IP) and commit it; or
+#   • Run this workflow with source=balldontlie for an automated SHALLOW refresh
+#     (works from CI). Note that overwrites a full snapshot with a shallow one.
+# For an automated FULL refresh, point `runs-on` at a self-hosted runner on a
+# residential connection.
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Data source"
+        type: choice
+        options: ["balldontlie", "nba-stats"]
+        default: "balldontlie"
+      full:
+        description: "Full re-ingest (ignore caches)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Ingest snapshot
+        env:
+          BALLDONTLIE_API_KEY: ${{ secrets.BALLDONTLIE_API_KEY }}
+          SOURCE: ${{ github.event.inputs.source }}
+        run: |
+          if [ "${{ github.event.inputs.full }}" = "true" ]; then
+            npm run ingest:full
+          else
+            npm run ingest
+          fi
+
+      - name: Commit refreshed snapshot
+        run: |
+          git config user.name "crossover-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/snapshot.json data/notable.json
+          if git diff --cached --quiet; then
+            echo "No snapshot changes."
+          else
+            git commit -m "chore(data): refresh snapshot $(date -u +%Y-%m-%d)"
+            git push
+          fi

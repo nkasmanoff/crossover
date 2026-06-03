@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.env
+.env.local
+*.log
+.DS_Store
+.cache/
+# Keep the committed snapshot (data/snapshot.json) — it is the source of truth at play time.
+# Ignore in-flight temp snapshots and the derivable per-source caches (large).
+data/*.tmp.json
+data/raw.*.cache.json
+data/team-history.*.cache.json
+# Legacy cache filenames (pre per-source split).
+data/raw.cache.json
+data/team-history-cache.json
