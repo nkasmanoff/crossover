@@ -141,6 +141,11 @@ export class Graph {
     return { ok: false, linkType };
   }
 
+  /** True if two players share a college and/or a pro team. */
+  anyLink(aId: string, bId: string): boolean {
+    return this.checkLink(aId, bId, "college").ok || this.checkLink(aId, bId, "team").ok;
+  }
+
   /**
    * Find one valid next player for a hint: someone linked to `fromId` by
    * `linkType` who is not in `exclude`. Returns undefined if none.

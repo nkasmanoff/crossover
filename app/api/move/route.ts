@@ -85,13 +85,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(res);
   }
 
+  const targetId = body.targetId != null ? String(body.targetId) : undefined;
+  const reachedTarget =
+    targetId != null &&
+    (candidateId === targetId || graph.anyLink(candidateId, targetId));
+
   const res: MoveResponse = {
     ok: true,
     status: "ok",
     linkType,
     matchedValue: match.matchedValue,
     matchedIcon: linkType === "college" ? "🎓" : "🏀",
-    reachedTarget: body.targetId != null && String(body.targetId) === candidateId,
+    reachedTarget,
     card: playerCard(graph, candidateId) ?? undefined,
   };
   return NextResponse.json(res);

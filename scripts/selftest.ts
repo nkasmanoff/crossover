@@ -48,6 +48,7 @@ assert(!g.checkLink("A", "B", "team").ok, "A↔B do NOT share a team");
 assert(g.checkLink("B", "C", "team").ok && g.checkLink("B", "C", "team").matchedValue === "Team One", "B↔C share Team One");
 assert(g.checkLink("C", "D", "college").ok, "C↔D share college UCLA");
 assert(!g.checkLink("A", "D", "college").ok && !g.checkLink("A", "D", "team").ok, "A↔D share nothing directly");
+assert(g.anyLink("B", "C") && g.anyLink("C", "D") && !g.anyLink("A", "D"), "anyLink matches college or team overlap");
 
 // Alternation parity (college off the seed, then team, then college…)
 assert(linkTypeForChainLength(1) === "college", "turn 1 (off seed) = college");

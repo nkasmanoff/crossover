@@ -3,8 +3,9 @@
 A daily sports association-chain game (NBA). Starting from one player, build a
 chain where each step links to the previous player by a **shared college (🎓)**
 or a **shared pro team (🏀)**, alternating link types. In Daily Bridge you
-**win by reaching the target player** — i.e. the move where you name the target
-itself and it validly links to your last player.
+**win by bridging to the target** — your last played player must validly link to
+the previous player, and share a college or pro team with the target (you do not
+need to name the target).
 
 Team history comes from a **pluggable data source** (`src/sources`):
 
